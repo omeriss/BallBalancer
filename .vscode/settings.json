@@ -1,0 +1,17 @@
+{
+  "stm32-for-vscode.openOCDPath": "C:\\openocd\\bin\\openocd.EXE",
+  "stm32-for-vscode.makePath": false,
+  "files.associations": {
+    "compare": "cpp",
+    "cstdint": "cpp",
+    "stm32f1xx_hal.h": "c",
+    "stm32f1xx_hal_conf.h": "c",
+    "stepper.h": "c",
+    "stm32f1xx_hal_crc.h": "c",
+    "stdbool.h": "c",
+    "main.h": "c",
+    "screen.h": "c",
+    "bit": "c",
+    "cmath": "c"
+  }
+}
