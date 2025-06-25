@@ -1,0 +1,26 @@
+# User/CMakeLists.txt
+
+# List your user source files here
+set(USER_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/Src/stepper.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Src/screen.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Src/inverse_kinematics.c
+)
+
+# List your user header include directories
+set(USER_INCLUDES
+    ${CMAKE_CURRENT_SOURCE_DIR}/Inc
+)
+
+# Create a static library or OBJECT library for user code
+add_library(user_code STATIC ${USER_SOURCES})
+
+# Or if you prefer OBJECT library to embed inside final target (no separate lib):
+# add_library(user_code OBJECT ${USER_SOURCES})
+
+# Add include directories to user_code target
+target_include_directories(user_code PUBLIC ${USER_INCLUDES})
+
+# Link user_code target with stm32cubemx interface for defines/includes
+target_link_libraries(user_code PUBLIC stm32cubemx)
+
