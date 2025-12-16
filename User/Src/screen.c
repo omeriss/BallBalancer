@@ -36,7 +36,7 @@ void initAxis(Screen *screen, Axis axis, bool inputMode)
 
     sConfig.Channel = otherAxisPtr->adcChannel;
     sConfig.Rank = ADC_REGULAR_RANK_1;
-    sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
+    sConfig.SamplingTime = ADC_SAMPLETIME_640CYCLES_5;
     if (HAL_ADC_ConfigChannel(screen->adcHandle, &sConfig) != HAL_OK)
         Error_Handler();
 }
@@ -51,7 +51,7 @@ void initAxisInput(Screen *screen, Axis axis)
     initAxis(screen, axis, true);
 }
 
-Screen screen_create(uint16_t width, uint32_t height, GPIO_TypeDef *xPort1, uint32_t xPin1, GPIO_TypeDef *xPort2, uint32_t xPin2, GPIO_TypeDef *yPort1, uint32_t yPin1, GPIO_TypeDef *yPort2, uint32_t yPin2, ADC_HandleTypeDef *adcHandle, uint32_t adcChannelX, uint32_t adcChannelY)
+Screen screen_create(uint16_t width, uint32_t height, TIM_HandleTypeDef *timerHandle, GPIO_TypeDef *xPort1, uint32_t xPin1, GPIO_TypeDef *xPort2, uint32_t xPin2, GPIO_TypeDef *yPort1, uint32_t yPin1, GPIO_TypeDef *yPort2, uint32_t yPin2, ADC_HandleTypeDef *adcHandle, uint32_t adcChannelX, uint32_t adcChannelY)
 {
     Screen screen = {
         .width = width,
@@ -63,7 +63,9 @@ Screen screen_create(uint16_t width, uint32_t height, GPIO_TypeDef *xPort1, uint
             .pin2 = xPin2,
             .adcChannel = adcChannelX},
         .yAxis = {.port1 = yPort1, .pin1 = yPin1, .port2 = yPort2, .pin2 = yPin2, .adcChannel = adcChannelY},
-        .adcHandle = adcHandle};
+        .adcHandle = adcHandle,
+        .timerHandle = timerHandle,
+    };
 
     return screen;
 }
@@ -118,24 +120,30 @@ void screen_calibration(Screen *screen)
     screen->calibrationData.yMin = yMin;
     screen->calibrationData.yMax = yMax;
 
-    HAL_FLASH_Unlock();
-    uint32_t address = FLASH_CALIBRATION_PAGE_ADDRESS;
+    HAL_StatusTypeDef s = HAL_FLASH_Unlock();
+    uint32_t address = FLASH_CALIBRATION_ADDRESS;
 
     FLASH_EraseInitTypeDef eraseInitStruct = {0};
-    uint32_t pageError = 0;
+    uint32_t delError = 0;
 
-    eraseInitStruct.TypeErase = FLASH_TYPEERASE_PAGES;
-    eraseInitStruct.PageAddress = address;
-    eraseInitStruct.NbPages = 1;
+    eraseInitStruct.TypeErase = FLASH_TYPEERASE_SECTORS;
+    eraseInitStruct.Banks = FLASH_CALIBRATION_BANK;
+    eraseInitStruct.Sector = FLASH_CALIBRATION_SECTOR;
+    eraseInitStruct.NbSectors = 1;
 
-    HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&eraseInitStruct, &pageError);
+    HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&eraseInitStruct, &delError);
     if (status != HAL_OK)
         Error_Handler();
 
-    status |= HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, address, screen->calibrationData.xMin);
-    status |= HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, address + 2, screen->calibrationData.xMax);
-    status |= HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, address + 4, screen->calibrationData.yMin);
-    status |= HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, address + 6, screen->calibrationData.yMax);
+    // STM32H5 requires 128-bit (16-byte) aligned programming
+    // Pack calibration data into 16-byte aligned buffer
+    __attribute__((aligned(16))) uint16_t flashData[8] = {0}; // 16 bytes total, 16-byte aligned
+    flashData[0] = screen->calibrationData.xMin;
+    flashData[1] = screen->calibrationData.xMax;
+    flashData[2] = screen->calibrationData.yMin;
+    flashData[3] = screen->calibrationData.yMax;
+
+    status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_QUADWORD, address, (uint32_t)flashData);
 
     if (status != HAL_OK)
         Error_Handler();
@@ -146,10 +154,10 @@ void screen_calibration(Screen *screen)
 void screen_load_calibration(Screen *screen)
 {
 
-    screen->calibrationData.xMin = *((uint16_t *)(FLASH_CALIBRATION_PAGE_ADDRESS + 0));
-    screen->calibrationData.xMax = *((uint16_t *)(FLASH_CALIBRATION_PAGE_ADDRESS + 2));
-    screen->calibrationData.yMin = *((uint16_t *)(FLASH_CALIBRATION_PAGE_ADDRESS + 4));
-    screen->calibrationData.yMax = *((uint16_t *)(FLASH_CALIBRATION_PAGE_ADDRESS + 6));
+    screen->calibrationData.xMin = *((uint16_t *)(FLASH_CALIBRATION_ADDRESS + 0));
+    screen->calibrationData.xMax = *((uint16_t *)(FLASH_CALIBRATION_ADDRESS + 2));
+    screen->calibrationData.yMin = *((uint16_t *)(FLASH_CALIBRATION_ADDRESS + 4));
+    screen->calibrationData.yMax = *((uint16_t *)(FLASH_CALIBRATION_ADDRESS + 6));
 }
 
 uint16_t get_sample_value_axis(Screen *screen, Axis axis)

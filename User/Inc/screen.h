@@ -2,11 +2,16 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "stm32f1xx_hal.h"
-#include "stm32f1xx_hal_flash.h"
+#include "stm32h5xx_hal.h"
+#include "stm32h5xx_hal_flash.h"
 #include "utils.h"
 
-#define FLASH_CALIBRATION_PAGE_ADDRESS ((uint32_t)0x0800FC00)
+#define FLASH_START_ADDRESS 0x08000000
+#define FLASH_SIZE (128 * 1024)
+#define FLASH_BANK_SIZE (FLASH_SIZE >> 1)
+#define FLASH_CALIBRATION_BANK FLASH_BANK_2
+#define FLASH_CALIBRATION_SECTOR FLASH_SECTOR_7
+#define FLASH_CALIBRATION_ADDRESS (FLASH_START_ADDRESS + (FLASH_CALIBRATION_BANK - 1) * FLASH_BANK_SIZE + FLASH_CALIBRATION_SECTOR * FLASH_SECTOR_SIZE)
 #define SAMPLE_SIZE 6
 #define TIME_BETWEEN_SAMPLES 100
 
@@ -80,7 +85,7 @@ typedef struct Screen
     ADC_HandleTypeDef *adcHandle;
 } Screen;
 
-Screen screen_create(uint16_t width, uint32_t height, GPIO_TypeDef *xPort1, uint32_t xPin1, GPIO_TypeDef *xPort2, uint32_t xPin2,
+Screen screen_create(uint16_t width, uint32_t height, TIM_HandleTypeDef *timerHandle, GPIO_TypeDef *xPort1, uint32_t xPin1, GPIO_TypeDef *xPort2, uint32_t xPin2,
                      GPIO_TypeDef *yPort1, uint32_t yPin1, GPIO_TypeDef *yPort2, uint32_t yPin2, ADC_HandleTypeDef *adcHandle,
                      uint32_t adcChannelX, uint32_t adcChannelY);
 

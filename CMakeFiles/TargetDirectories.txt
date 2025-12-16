@@ -1,6 +1,6 @@
-C:/Users/omer1/Downloads/teststm2/CMakeFiles/teststm2.dir
-C:/Users/omer1/Downloads/teststm2/CMakeFiles/edit_cache.dir
-C:/Users/omer1/Downloads/teststm2/CMakeFiles/rebuild_cache.dir
-C:/Users/omer1/Downloads/teststm2/cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir
-C:/Users/omer1/Downloads/teststm2/cmake/stm32cubemx/CMakeFiles/edit_cache.dir
-C:/Users/omer1/Downloads/teststm2/cmake/stm32cubemx/CMakeFiles/rebuild_cache.dir
+C:/Users/omer1/Downloads/h52/CMakeFiles/h52.dir
+C:/Users/omer1/Downloads/h52/CMakeFiles/edit_cache.dir
+C:/Users/omer1/Downloads/h52/CMakeFiles/rebuild_cache.dir
+C:/Users/omer1/Downloads/h52/cmake/stm32cubemx/CMakeFiles/STM32_Drivers.dir
+C:/Users/omer1/Downloads/h52/cmake/stm32cubemx/CMakeFiles/edit_cache.dir
+C:/Users/omer1/Downloads/h52/cmake/stm32cubemx/CMakeFiles/rebuild_cache.dir
