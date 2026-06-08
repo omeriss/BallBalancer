@@ -19,11 +19,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "gpio.h"
 #include "i2c.h"
 #include "icache.h"
 #include "memorymap.h"
 #include "tim.h"
-#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -66,8 +66,7 @@ void SystemClock_Config(void);
  * @brief  The application entry point.
  * @retval int
  */
-int main(void)
-{
+int main(void) {
 
   /* USER CODE BEGIN 1 */
 
@@ -75,7 +74,8 @@ int main(void)
 
   /* MCU Configuration--------------------------------------------------------*/
 
-  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick.
+   */
   HAL_Init();
 
   /* USER CODE BEGIN Init */
@@ -113,26 +113,27 @@ int main(void)
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_SET);
   // read timer value
   HAL_TIM_Base_Start(&htim1); // Start the timer
-  StepperMotorConfig motorConfig = {
-      .acceleration = 1000,
-      .stepsPerRevolution = 200,
-      .microstepping = 8,
-      .timerHandle = &htim1,
-      .maxStepsGap = 9000,
-      .minStepsGap = 3000};
+  StepperMotorConfig motorConfig = {.acceleration = 1000,
+                                    .stepsPerRevolution = 200,
+                                    .microstepping = 8,
+                                    .timerHandle = &htim1,
+                                    .maxStepsGap = 9000,
+                                    .minStepsGap = 3000};
 
-  StepperMotor motor1 = motor_create(&motorConfig, GPIOA, GPIO_PIN_10, GPIO_PIN_11, 195, true);
-  StepperMotor motor2 = motor_create(&motorConfig, GPIOA, GPIO_PIN_8, GPIO_PIN_9, 195, true);
-  StepperMotor motor3 = motor_create(&motorConfig, GPIOB, GPIO_PIN_14, GPIO_PIN_15, 194, true);
-  Screen screen = screen_create(178, 136, &htim1, GPIOA, GPIO_PIN_2, GPIOA, GPIO_PIN_3, GPIOA, GPIO_PIN_0, GPIOA, GPIO_PIN_1, &hadc1, ADC_CHANNEL_14, ADC_CHANNEL_0);
+  StepperMotor motor1 =
+      motor_create(&motorConfig, GPIOB, GPIO_PIN_15, GPIO_PIN_14, 195, true);
+  StepperMotor motor2 =
+      motor_create(&motorConfig, GPIOA, GPIO_PIN_9, GPIO_PIN_8, 195, true);
+  StepperMotor motor3 =
+      motor_create(&motorConfig, GPIOA, GPIO_PIN_11, GPIO_PIN_10, 194, true);
+  Screen screen = screen_create(
+      178, 136, &htim1, GPIOA, GPIO_PIN_2, GPIOA, GPIO_PIN_3, GPIOA, GPIO_PIN_0,
+      GPIOA, GPIO_PIN_1, &hadc1, ADC_CHANNEL_14, ADC_CHANNEL_0);
 
   // screen_calibration(&screen);
   screen_load_calibration(&screen);
   RRS3Options rrs3Options = {
-      .buttomLeg = 67.5,
-      .topLeg = 125.5,
-      .baseR = 63,
-      .platformR = 63};
+      .buttomLeg = 67.5, .topLeg = 125.5, .baseR = 63, .platformR = 63};
 
   float lastX = 0;
   float lastY = 0;
@@ -142,14 +143,14 @@ int main(void)
   float integralY = 0;
   float lastErrorX = 0;
   float lastErrorY = 0;
-  
+
   float filteredVelX = 0;
   float filteredVelY = 0;
-  
-  float Kp = 0.8f; 
+
+  float Kp = 0.8f;
   float Ki = 0.05f;
-  float Kd = 0.4f;   
-  
+  float Kd = 0.4f;
+
   float angleA, angleB, angleC;
 
   motor_set_angle(&motor1, 90);
@@ -159,55 +160,63 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    uint16_t startTime = __HAL_TIM_GET_COUNTER(&htim1);
+  while (1) {
     ScreenData screenData = screen_read(&screen);
-    
+
     float x = (screenData.x - screen.width / 2) / 400.0f;
     float y = -1 * (screenData.y - screen.height / 2) / 400.0f;
-    
+
     uint32_t currentTime = HAL_GetTick();
     float dt = (currentTime - lastTime) / 1000.0f; // Convert to seconds
-    if (dt > 0.1f) dt = 0.01f;
+    if (dt > 0.1f)
+      dt = 0.01f;
     lastTime = currentTime;
-    
+
     float velocityX = (x - lastX) / dt;
     float velocityY = (y - lastY) / dt;
-    
+
     filteredVelX = 0.3f * velocityX + 0.7f * filteredVelX;
     filteredVelY = 0.3f * velocityY + 0.7f * filteredVelY;
-    
+
     float errorX = x;
     integralX += errorX * dt;
 
-    if (integralX > 0.1f) integralX = 0.1f;
-    if (integralX < -0.1f) integralX = -0.1f;
+    if (integralX > 0.1f)
+      integralX = 0.1f;
+    if (integralX < -0.1f)
+      integralX = -0.1f;
 
     float derivativeX = filteredVelX;
     float controlX = Kp * errorX + Ki * integralX + Kd * derivativeX;
-    
+
     float errorY = y;
     integralY += errorY * dt;
 
-    if (integralY > 0.1f) integralY = 0.1f;
-    if (integralY < -0.1f) integralY = -0.1f;
+    if (integralY > 0.1f)
+      integralY = 0.1f;
+    if (integralY < -0.1f)
+      integralY = -0.1f;
     float derivativeY = filteredVelY;
     float controlY = Kp * errorY + Ki * integralY + Kd * derivativeY;
-    
-    if (controlX > 0.15f) controlX = 0.15f;
-    if (controlX < -0.15f) controlX = -0.15f;
-    if (controlY > 0.15f) controlY = 0.15f;
-    if (controlY < -0.15f) controlY = -0.15f;
-    
-    float angleA = rrs3_calculate_angles(A, &rrs3Options, 150, controlX, controlY);
-    float angleB = rrs3_calculate_angles(B, &rrs3Options, 150, controlX, controlY);
-    float angleC = rrs3_calculate_angles(C, &rrs3Options, 150, controlX, controlY);
-    
+
+    if (controlX > 0.15f)
+      controlX = 0.15f;
+    if (controlX < -0.15f)
+      controlX = -0.15f;
+    if (controlY > 0.15f)
+      controlY = 0.15f;
+    if (controlY < -0.15f)
+      controlY = -0.15f;
+
+    float angleA =
+        rrs3_calculate_angles(A, &rrs3Options, 150, controlX, controlY);
+    float angleB =
+        rrs3_calculate_angles(B, &rrs3Options, 150, controlX, controlY);
+    float angleC =
+        rrs3_calculate_angles(C, &rrs3Options, 150, controlX, controlY);
+
     lastX = x;
     lastY = y;
-    
-    uint16_t endTime = __HAL_TIM_GET_COUNTER(&htim1);
 
     motor_set_angle(&motor1, angleA);
     motor_set_angle(&motor2, angleB);
@@ -227,8 +236,7 @@ int main(void)
  * @brief System Clock Configuration
  * @retval None
  */
-void SystemClock_Config(void)
-{
+void SystemClock_Config(void) {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
@@ -236,8 +244,7 @@ void SystemClock_Config(void)
    */
   __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
-  while (!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY))
-  {
+  while (!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {
   }
 
   /** Initializes the RCC Oscillators according to the specified parameters
@@ -257,22 +264,22 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1_VCIRANGE_3;
   RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1_VCORANGE_WIDE;
   RCC_OscInitStruct.PLL.PLLFRACN = 2048;
-  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
     Error_Handler();
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
    */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 | RCC_CLOCKTYPE_PCLK3;
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK |
+                                RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2 |
+                                RCC_CLOCKTYPE_PCLK3;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB3CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
-  {
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK) {
     Error_Handler();
   }
 
@@ -289,13 +296,11 @@ void SystemClock_Config(void)
  * @brief  This function is executed in case of error occurrence.
  * @retval None
  */
-void Error_Handler(void)
-{
+void Error_Handler(void) {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
-  while (1)
-  {
+  while (1) {
   }
   /* USER CODE END Error_Handler_Debug */
 }
@@ -308,11 +313,11 @@ void Error_Handler(void)
  * @param  line: assert_param error line source number
  * @retval None
  */
-void assert_failed(uint8_t *file, uint32_t line)
-{
+void assert_failed(uint8_t *file, uint32_t line) {
   /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* User can add his own implementation to report the file name and line
+     number, ex: printf("Wrong parameters value: file %s on line %d\r\n", file,
+     line) */
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdint.h>
+#include "stm32h5xx_hal.h"
+
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define ABS(x) ((x) < 0 ? -(x) : (x))
