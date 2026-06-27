@@ -53,3 +53,4 @@ build/
 *.pdb
 
 /.cache
+/.claude

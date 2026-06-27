@@ -37,7 +37,33 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define MOTOR_ACCELERATION 1000
+#define MOTOR_STEPS_PER_REVOLUTION 200
+#define MOTOR_MICROSTEPPING 8
+#define MOTOR_MAX_STEPS_GAP 9000
+#define MOTOR_MIN_STEPS_GAP 3000
+#define MOTOR_INITIAL_ANGLE_DEG 90
 
+#define MOTOR1_START_ANGLE_DEG 195
+#define MOTOR2_START_ANGLE_DEG 195
+#define MOTOR3_START_ANGLE_DEG 195
+
+#define SCREEN_WIDTH_PX 178
+#define SCREEN_HEIGHT_PX 136
+
+#define RRS3_BOTTOM_LEG_MM 67.5f
+#define RRS3_TOP_LEG_MM 125.5f
+#define RRS3_BASE_RADIUS_MM 63.0f
+#define RRS3_PLATFORM_RADIUS_MM 63.0f
+#define PLATFORM_HEIGHT_MM 150.0f
+
+#define SCREEN_POSITION_SCALE 400.0f
+
+#define PID_KP 0.5f
+#define PID_KI 0.015f
+#define PID_KD 0.25f
+#define PID_INTEGRAL_LIMIT 0.015f
+#define PID_OUTPUT_LIMIT 0.1f
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -113,49 +139,43 @@ int main(void) {
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_SET);
   // read timer value
   HAL_TIM_Base_Start(&htim1); // Start the timer
-  StepperMotorConfig motorConfig = {.acceleration = 1000,
-                                    .stepsPerRevolution = 200,
-                                    .microstepping = 8,
+  StepperMotorConfig motorConfig = {.acceleration = MOTOR_ACCELERATION,
+                                    .stepsPerRevolution = MOTOR_STEPS_PER_REVOLUTION,
+                                    .microstepping = MOTOR_MICROSTEPPING,
                                     .timerHandle = &htim1,
-                                    .maxStepsGap = 9000,
-                                    .minStepsGap = 3000};
+                                    .maxStepsGap = MOTOR_MAX_STEPS_GAP,
+                                    .minStepsGap = MOTOR_MIN_STEPS_GAP};
 
-  StepperMotor motor1 =
-      motor_create(&motorConfig, GPIOB, GPIO_PIN_15, GPIO_PIN_14, 195, true);
-  StepperMotor motor2 =
-      motor_create(&motorConfig, GPIOA, GPIO_PIN_9, GPIO_PIN_8, 195, true);
-  StepperMotor motor3 =
-      motor_create(&motorConfig, GPIOA, GPIO_PIN_11, GPIO_PIN_10, 194, true);
+  StepperMotor motor1 = motor_create(&motorConfig, GPIOB, GPIO_PIN_15,
+                                     GPIO_PIN_14, MOTOR1_START_ANGLE_DEG, true);
+  StepperMotor motor2 = motor_create(&motorConfig, GPIOA, GPIO_PIN_9,
+                                     GPIO_PIN_8, MOTOR2_START_ANGLE_DEG, true);
+  StepperMotor motor3 = motor_create(&motorConfig, GPIOA, GPIO_PIN_11,
+                                     GPIO_PIN_10, MOTOR3_START_ANGLE_DEG, true);
   Screen screen = screen_create(
-      178, 136, &htim1, GPIOA, GPIO_PIN_2, GPIOA, GPIO_PIN_3, GPIOA, GPIO_PIN_0,
-      GPIOA, GPIO_PIN_1, &hadc1, ADC_CHANNEL_14, ADC_CHANNEL_0);
+      SCREEN_WIDTH_PX, SCREEN_HEIGHT_PX, &htim1, GPIOA, GPIO_PIN_2, GPIOA,
+      GPIO_PIN_3, GPIOA, GPIO_PIN_0, GPIOA, GPIO_PIN_1, &hadc1,
+      ADC_CHANNEL_14, ADC_CHANNEL_0);
 
   // screen_calibration(&screen);
   screen_load_calibration(&screen);
-  RRS3Options rrs3Options = {
-      .buttomLeg = 67.5, .topLeg = 125.5, .baseR = 63, .platformR = 63};
+  RRS3Options rrs3Options = {.buttomLeg = RRS3_BOTTOM_LEG_MM,
+                             .topLeg = RRS3_TOP_LEG_MM,
+                             .baseR = RRS3_BASE_RADIUS_MM,
+                             .platformR = RRS3_PLATFORM_RADIUS_MM};
 
-  float lastX = 0;
-  float lastY = 0;
+  PIDConfig pidConfig = {.kp = PID_KP,
+                         .ki = PID_KI,
+                         .kd = PID_KD,
+                         .integralLimit = PID_INTEGRAL_LIMIT,
+                         .outputLimit = PID_OUTPUT_LIMIT};
+  PID pidX = pid_create(&pidConfig);
+  PID pidY = pid_create(&pidConfig);
   uint32_t lastTime = HAL_GetTick();
 
-  float integralX = 0;
-  float integralY = 0;
-  float lastErrorX = 0;
-  float lastErrorY = 0;
-
-  float filteredVelX = 0;
-  float filteredVelY = 0;
-
-  float Kp = 0.8f;
-  float Ki = 0.05f;
-  float Kd = 0.4f;
-
-  float angleA, angleB, angleC;
-
-  motor_set_angle(&motor1, 90);
-  motor_set_angle(&motor2, 90);
-  motor_set_angle(&motor3, 90);
+  motor_set_angle(&motor1, MOTOR_INITIAL_ANGLE_DEG);
+  motor_set_angle(&motor2, MOTOR_INITIAL_ANGLE_DEG);
+  motor_set_angle(&motor3, MOTOR_INITIAL_ANGLE_DEG);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -163,60 +183,20 @@ int main(void) {
   while (1) {
     ScreenData screenData = screen_read(&screen);
 
-    float x = (screenData.x - screen.width / 2) / 400.0f;
-    float y = -1 * (screenData.y - screen.height / 2) / 400.0f;
+    float x = (screenData.x - screen.width / 2) / SCREEN_POSITION_SCALE;
+    float y = -1 * (screenData.y - screen.height / 2) / SCREEN_POSITION_SCALE;
 
-    uint32_t currentTime = HAL_GetTick();
-    float dt = (currentTime - lastTime) / 1000.0f; // Convert to seconds
-    if (dt > 0.1f)
-      dt = 0.01f;
-    lastTime = currentTime;
+    float dt = pid_compute_dt(&lastTime);
 
-    float velocityX = (x - lastX) / dt;
-    float velocityY = (y - lastY) / dt;
+    float newX = pid_update(&pidX, x, dt);
+    float newY = pid_update(&pidY, y, dt);
 
-    filteredVelX = 0.3f * velocityX + 0.7f * filteredVelX;
-    filteredVelY = 0.3f * velocityY + 0.7f * filteredVelY;
-
-    float errorX = x;
-    integralX += errorX * dt;
-
-    if (integralX > 0.1f)
-      integralX = 0.1f;
-    if (integralX < -0.1f)
-      integralX = -0.1f;
-
-    float derivativeX = filteredVelX;
-    float controlX = Kp * errorX + Ki * integralX + Kd * derivativeX;
-
-    float errorY = y;
-    integralY += errorY * dt;
-
-    if (integralY > 0.1f)
-      integralY = 0.1f;
-    if (integralY < -0.1f)
-      integralY = -0.1f;
-    float derivativeY = filteredVelY;
-    float controlY = Kp * errorY + Ki * integralY + Kd * derivativeY;
-
-    if (controlX > 0.15f)
-      controlX = 0.15f;
-    if (controlX < -0.15f)
-      controlX = -0.15f;
-    if (controlY > 0.15f)
-      controlY = 0.15f;
-    if (controlY < -0.15f)
-      controlY = -0.15f;
-
-    float angleA =
-        rrs3_calculate_angles(A, &rrs3Options, 150, controlX, controlY);
-    float angleB =
-        rrs3_calculate_angles(B, &rrs3Options, 150, controlX, controlY);
-    float angleC =
-        rrs3_calculate_angles(C, &rrs3Options, 150, controlX, controlY);
-
-    lastX = x;
-    lastY = y;
+    float angleA = rrs3_calculate_angles(A, &rrs3Options, PLATFORM_HEIGHT_MM,
+                                         newX, newY);
+    float angleB = rrs3_calculate_angles(B, &rrs3Options, PLATFORM_HEIGHT_MM,
+                                         newX, newY);
+    float angleC = rrs3_calculate_angles(C, &rrs3Options, PLATFORM_HEIGHT_MM,
+                                         newX, newY);
 
     motor_set_angle(&motor1, angleA);
     motor_set_angle(&motor2, angleB);

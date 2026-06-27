@@ -5,6 +5,7 @@ set(USER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/Src/stepper.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Src/screen.c
     ${CMAKE_CURRENT_SOURCE_DIR}/Src/inverse_kinematics.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/Src/pid.c
 )
 
 # List your user header include directories

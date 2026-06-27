@@ -34,6 +34,7 @@ extern "C" {
 #include "stepper.h"
 #include "screen.h"
 #include "inverse_kinematics.h"
+#include "pid.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

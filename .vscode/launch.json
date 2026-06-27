@@ -17,7 +17,9 @@
       "showDevDebugOutput": "none",
       "device": "STM32H503CBTx",
       "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32H503.svd",
-      "serverArgs": ["-s", "${env:SCRIPTS_PATH}", "-d3"]
+      "serverpath": "${env:OPENOCD_PATH}",
+      "serverArgs": ["-s", "${env:SCRIPTS_PATH}", "-d3"],
+      "gdbPath": "${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb"
       // "preLaunchTask": "Build + Flash"
     },
     {
@@ -33,14 +35,9 @@
       "showDevDebugOutput": "none",
       "device": "STM32H503CBTx",
       "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32H503.svd",
-      "serverArgs": [
-        "-s",
-        "${env:SCRIPTS_PATH}",
-        "-s",
-        "C:\\ST\\STM32CubeIDE_1.18.0\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.debug.openocd_2.3.100.202501240831\\resources\\openocd\\st_scripts",
-        "-d3"
-      ],
-      "serverpath": "C:\\ST\\STM32CubeIDE_1.18.0\\STM32CubeIDE\\plugins\\com.st.stm32cube.ide.mcu.externaltools.openocd.win32_2.4.100.202501161620\\tools\\bin\\openocd.exe",
+      "serverArgs": ["-s", "${env:SCRIPTS_PATH}", "-d3"],
+      "serverpath": "${env:OPENOCD_PATH}",
+      "gdbPath": "${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb",
       "preLaunchTask": "Build + Flash"
     },
     {
