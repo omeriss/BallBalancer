@@ -6,7 +6,7 @@
   "configurations": [
     {
       "cwd": "${workspaceRoot}",
-      "executable": "./build/Debug/teststm2.elf",
+      "executable": "./build/Debug/h52.elf",
       "name": "Debug with OpenOCD",
       "request": "launch",
       "type": "cortex-debug",
@@ -15,14 +15,16 @@
       "searchDir": [],
       "runToEntryPoint": "main",
       "showDevDebugOutput": "none",
-      "device": "STM32F103C8Tx",
-      "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32F103.svd",
-      "serverArgs": ["-s", "${env:SCRIPTS_PATH}", "-d3"]
+      "device": "STM32H503CBTx",
+      "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32H503.svd",
+      "serverpath": "${env:OPENOCD_PATH}",
+      "serverArgs": ["-s", "${env:SCRIPTS_PATH}", "-d3"],
+      "gdbPath": "${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb"
       // "preLaunchTask": "Build + Flash"
     },
     {
       "cwd": "${workspaceRoot}",
-      "executable": "./build/Debug/teststm2.elf",
+      "executable": "./build/Debug/h52.elf",
       "name": "build and upload with OpenOCD",
       "request": "launch",
       "type": "cortex-debug",
@@ -31,10 +33,29 @@
       "searchDir": [],
       "runToEntryPoint": "main",
       "showDevDebugOutput": "none",
-      "device": "STM32F103C8Tx",
-      "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32F103.svd",
+      "device": "STM32H503CBTx",
+      "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32H503.svd",
       "serverArgs": ["-s", "${env:SCRIPTS_PATH}", "-d3"],
+      "serverpath": "${env:OPENOCD_PATH}",
+      "gdbPath": "${config:STM32VSCodeExtension.cubeCLT.path}/GNU-tools-for-STM32/bin/arm-none-eabi-gdb",
       "preLaunchTask": "Build + Flash"
+    },
+    {
+      "name": "Debug with OpenOCD CMSIS-DAP",
+      "type": "cortex-debug",
+      "request": "launch",
+      "servertype": "openocd",
+      "cwd": "${workspaceRoot}",
+      "searchDir": [],
+
+      "executable": "./build/Debug/teststm2.elf",
+      "configFiles": ["interface/cmsis-dap.cfg", "target/stm32f1x.cfg"],
+      "runToEntryPoint": "main",
+      "showDevDebugOutput": "none",
+
+      "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32H503.svd",
+      "preLaunchTask": "CMake: build",
+      "device": "STM32H503CBTx" // your MCU name
     },
     {
       "name": "Build & Debug Microcontroller - ST-Link",
@@ -45,11 +66,11 @@
       // Or fixed file path: "${workspaceFolder}/path/to/filename.elf"
       "request": "launch",
       "servertype": "stlink",
-      "device": "STM32F103C8Tx", //MCU used
+      "device": "STM32H503CBTx", //MCU used
       "interface": "swd",
       "serialNumber": "", //Set ST-Link ID if you use multiple at the same time
       "runToEntryPoint": "main",
-      "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32F103.svd",
+      "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32H503.svd",
       "v1": false, //Change it depending on ST Link version
       "serverpath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",
       "stm32cubeprogrammer": "${config:STM32VSCodeExtension.cubeCLT.path}/STM32CubeProgrammer/bin",
@@ -70,11 +91,11 @@
       // Or fixed file path: "${workspaceFolder}/path/to/filename.elf"
       "request": "attach",
       "servertype": "stlink",
-      "device": "STM32F103C8Tx", //MCU used
+      "device": "STM32H503CBTx", //MCU used
       "interface": "swd",
       "serialNumber": "", //Set ST-Link ID if you use multiple at the same time
       "runToEntryPoint": "main",
-      "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32F103.svd",
+      "svdFile": "${config:STM32VSCodeExtension.cubeCLT.path}/STMicroelectronics_CMSIS_SVD/STM32H503.svd",
       "v1": false, //Change it depending on ST Link version
       "serverpath": "${config:STM32VSCodeExtension.cubeCLT.path}/STLink-gdb-server/bin/ST-LINK_gdbserver",
       "stm32cubeprogrammer": "${config:STM32VSCodeExtension.cubeCLT.path}/STM32CubeProgrammer/bin",

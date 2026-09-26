@@ -19,7 +19,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Set the project name
-set(CMAKE_PROJECT_NAME teststm2)
+set(CMAKE_PROJECT_NAME h52)
 
 # Include toolchain file
 include("cmake/gcc-arm-none-eabi.cmake")
@@ -68,4 +68,3 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
     # Add user defined libraries
     user_code
 )
-
