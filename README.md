@@ -50,3 +50,10 @@ h52.ioc                CubeMX project file
 - M3 screws (6x 22mm, 12x 12mm, 5x 10mm)
 - Proto PCBs and wires / custom PCB
 - 3D printed parts
+
+## Images
+
+<p float="left">
+  <img src="images/ball.jpeg" height="300" alt="Ball" />
+  <img src="images/fusion.png" height="300" alt="Fusion 360 design" />
+</p>
