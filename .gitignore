@@ -54,3 +54,12 @@ build/
 
 /.cache
 /.claude
+
+/CMakeCache.txt
+/CMakeFiles/
+/cmake_install.cmake
+/build.ninja
+/compile_commands.json
+/.ninja_log
+/.ninja_deps
+cmake/stm32cubemx/cmake_install.cmake
