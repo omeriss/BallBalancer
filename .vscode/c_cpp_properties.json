@@ -1,24 +1,21 @@
 {
-  "version": 4,
-  "configurations": [
-    {
-      /**
-       * ms-vscode.cmake-tools plugin should be installed.
-       *
-       * It provides data for C/C++ plugin,
-       * such as include paths, browse paths, defines, etc.
-       */
-      "name": "STM32",
-      "configurationProvider": "ms-vscode.cmake-tools",
-      "intelliSenseMode": "${default}",
-      "includePath": ["${workspaceFolder}/**"],
-      "defines": [
-        "__CC_ARM",
-        "STM32F1xx",
-        "USE_HAL_DRIVER",
-        "DEBUG",
-        "STM32F103xB"
-      ]
-    }
-  ]
+    "configurations": [
+        {
+            "name": "STM32",
+            "configurationProvider": "ms-vscode.cmake-tools",
+            "intelliSenseMode": "${default}",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "__CC_ARM",
+                "STM32H5xx",
+                "USE_HAL_DRIVER",
+                "DEBUG",
+                "STM32H503xx"
+            ],
+            "compileCommands": "${workspaceFolder}/build/Debug/compile_commands.json"
+        }
+    ],
+    "version": 4
 }

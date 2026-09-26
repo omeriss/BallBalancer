@@ -51,3 +51,6 @@ build/
 *.su
 *.idb
 *.pdb
+
+/.cache
+/.claude

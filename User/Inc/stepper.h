@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "stm32f1xx_hal.h"
+#include "stm32h5xx_hal.h"
 #include "utils.h"
 
 #define MAX_ANGLE_DIFF 90

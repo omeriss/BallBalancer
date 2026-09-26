@@ -2,6 +2,7 @@
   "stm32-for-vscode.openOCDPath": "C:\\openocd\\bin\\openocd.EXE",
   "stm32-for-vscode.makePath": false,
   "files.associations": {
+    "*.dbclient-js": "javascript",
     "compare": "cpp",
     "cstdint": "cpp",
     "stm32f1xx_hal.h": "c",
@@ -12,6 +13,28 @@
     "main.h": "c",
     "screen.h": "c",
     "bit": "c",
-    "cmath": "c"
-  }
+    "cmath": "c",
+    "stm32h5xx_hal.h": "c",
+    "stm32h5xx_hal_conf.h": "c",
+    "stm32h5xx_hal_rcc.h": "c",
+    "stm32h5xx_hal_def.h": "c",
+    "stm32_hal_legacy.h": "c",
+    "stm32h5xx.h": "c",
+    "i2c.h": "c",
+    "mpu6050.h": "c"
+  },
+  "search.exclude": {
+    "**/build": true,
+    "**/Drivers": true,
+    "**/CMakeFiles": true
+  },
+  "cmake.cmakePath": "cube-cmake",
+  "cmake.configureArgs": ["-DCMAKE_COMMAND=cube-cmake"],
+  "stm32cube-ide-clangd.path": "cube",
+  "stm32cube-ide-clangd.arguments": [
+    "starm-clangd",
+    "--query-driver=${env:CUBE_BUNDLE_PATH}/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-gcc.exe",
+    "--query-driver=${env:CUBE_BUNDLE_PATH}/gnu-tools-for-stm32/14.3.1+st.2/bin/arm-none-eabi-g++.exe"
+  ],
+  "cmake.preferredGenerators": ["Ninja"]
 }

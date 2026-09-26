@@ -1,8 +1,8 @@
-# Install script for directory: C:/Users/omer1/Downloads/teststm2/cmake/stm32cubemx
+# Install script for directory: C:/Users/omer1/Downloads/h52/cmake/stm32cubemx
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "C:/Program Files/teststm2")
+  set(CMAKE_INSTALL_PREFIX "C:/Program Files/h52")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
